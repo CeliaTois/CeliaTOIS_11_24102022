@@ -1,5 +1,6 @@
 import json
 from flask import Flask,render_template,request,redirect,flash,url_for
+from datetime import datetime
 
 
 def loadClubs():
@@ -23,6 +24,10 @@ def get_max_number_of_places(club_points, number_of_competition_places):
     return max_places
 
 
+def get_current_datetime():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 app = Flask(__name__)
 app.secret_key = 'something_special'
 
@@ -37,7 +42,12 @@ def index():
 def showSummary():
     try:
         club = [club for club in clubs if club['email'] == request.form['email']][0]
-        return render_template('welcome.html',club=club,competitions=competitions)
+        return render_template(
+            'welcome.html',
+            club=club,
+            competitions=competitions,
+            current_datetime=get_current_datetime()
+            )
     except IndexError:
         flash("Sorry, that email wasn't found.")
         return redirect(url_for('index'))
@@ -47,12 +57,18 @@ def showSummary():
 def book(competition,club):
     foundClub = [c for c in clubs if c['name'] == club][0]
     foundCompetition = [c for c in competitions if c['name'] == competition][0]
-    if foundClub and foundCompetition:
+    current_datetime = get_current_datetime()
+    if foundClub and foundCompetition and foundCompetition['date'] > current_datetime:
         max_places = get_max_number_of_places(int(foundClub['points']), int(foundCompetition['numberOfPlaces']))
         return render_template('booking.html',club=foundClub,competition=foundCompetition,max_places=max_places)
     else:
         flash("Something went wrong-please try again")
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template(
+            'welcome.html',
+            club=club,
+            competitions=competitions,
+            current_datetime=current_datetime
+            )
 
 
 @app.route('/purchasePlaces',methods=['POST'])
@@ -67,7 +83,12 @@ def purchasePlaces():
     else:
         competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
         flash('Great-booking complete!')
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template(
+            'welcome.html',
+            club=club,
+            competitions=competitions,
+            current_datetime=get_current_datetime()
+            )
 
 
 # TODO: Add route for points display
