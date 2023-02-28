@@ -54,13 +54,8 @@
         $ locust -f tests/performance/locustfile.py
         ```
         
-    - **TESTS** (make sure the app is running):
+    - **TESTS AND COVERAGE** (make sure the app is running):
         ```
-        $ pytest tests
-        ```
-        
-    - **COVERAGE**:
-        ```
-        $ coverage run server.py
+        $ coverage run -m pytest tests
         $ coverage report
         ```
